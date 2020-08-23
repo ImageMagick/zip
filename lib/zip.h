@@ -45,7 +45,7 @@ extern "C" {
 #include <zipconf.h>
 
 #ifndef ZIP_EXTERN
-#ifndef ZIP_STATIC
+#ifndef _LIB
 #ifdef _WIN32
 #define ZIP_EXTERN __declspec(dllimport)
 #elif defined(__GNUC__) && __GNUC__ >= 4

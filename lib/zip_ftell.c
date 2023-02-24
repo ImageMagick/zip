@@ -1,9 +1,9 @@
 /*
   zip_ftell.c -- tell position in file
-  Copyright (C) 2016-2019 Dieter Baron and Thomas Klausner
+  Copyright (C) 2016-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
-  The authors can be contacted at <libzip@nih.at>
+  The authors can be contacted at <info@libzip.org>
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -39,15 +39,15 @@ zip_ftell(zip_file_t *zf) {
     zip_int64_t res;
 
     if (!zf)
-	return -1;
+        return -1;
 
     if (zf->error.zip_err != 0)
-	return -1;
+        return -1;
 
     res = zip_source_tell(zf->src);
     if (res < 0) {
-	_zip_error_set_from_source(&zf->error, zf->src);
-	return -1;
+        _zip_error_set_from_source(&zf->error, zf->src);
+        return -1;
     }
 
     return res;

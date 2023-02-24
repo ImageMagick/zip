@@ -23,12 +23,14 @@
 #cmakedefine HAVE_CRYPTO
 #cmakedefine HAVE_FICLONERANGE
 #cmakedefine HAVE_FILENO
+#cmakedefine HAVE_FCHMOD
 #cmakedefine HAVE_FSEEKO
 #cmakedefine HAVE_FTELLO
 #cmakedefine HAVE_GETPROGNAME
 #cmakedefine HAVE_GNUTLS
 #cmakedefine HAVE_LIBBZ2
 #cmakedefine HAVE_LIBLZMA
+#cmakedefine HAVE_LIBZSTD
 #cmakedefine HAVE_LOCALTIME_R
 #cmakedefine HAVE_MBEDTLS
 #cmakedefine HAVE_MKSTEMP

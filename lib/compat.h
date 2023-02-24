@@ -3,10 +3,10 @@
 
 /*
   compat.h -- compatibility defines.
-  Copyright (C) 1999-2019 Dieter Baron and Thomas Klausner
+  Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
-  The authors can be contacted at <libzip@nih.at>
+  The authors can be contacted at <info@libzip.org>
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
 #ifdef _WIN32
 #ifndef ZIP_EXTERN
-#ifndef _LIB
+#ifndef ZIP_STATIC
 #define ZIP_EXTERN __declspec(dllexport)
 #endif
 #endif
@@ -94,7 +94,7 @@ typedef char bool;
 #if !defined(HAVE_FILENO) && defined(HAVE__FILENO)
 #define fileno _fileno
 #endif
-#if defined(HAVE__SNPRINTF)
+#if !defined(HAVE_SNPRINTF) && defined(HAVE__SNPRINTF)
 #define snprintf _snprintf
 #endif
 #if defined(HAVE__STRDUP)

@@ -6,7 +6,7 @@ if (${CMAKE_VERSION} VERSION_LESS "3.17.0")
 endif()
 
 project(libzip
-  VERSION 1.7.3
+  VERSION 1.9.2
   LANGUAGES C)
 
 option(ENABLE_COMMONCRYPTO "Enable use of CommonCrypto" ON)
@@ -17,6 +17,7 @@ option(ENABLE_WINDOWS_CRYPTO "Enable use of Windows cryptography libraries" ON)
 
 option(ENABLE_BZIP2 "Enable use of BZip2" ON)
 option(ENABLE_LZMA "Enable use of LZMA" ON)
+option(ENABLE_ZSTD "Enable use of Zstandard" ON)
 
 option(BUILD_TOOLS "Build tools in the src directory (zipcmp, zipmerge, ziptool)" ON)
 option(BUILD_REGRESS "Build regression tests" ON)
@@ -33,33 +34,24 @@ include(CheckCSourceCompiles)
 include(CheckStructHasMember)
 include(TestBigEndian)
 include(GNUInstallDirs)
+
 if(ENABLE_COMMONCRYPTO)
   check_include_files(CommonCrypto/CommonCrypto.h COMMONCRYPTO_FOUND)
-else()
-  set(COMMONCRYPTO_FOUND FALSE)
 endif()
 if(ENABLE_GNUTLS)
   find_package(Nettle 3.0)
   find_package(GnuTLS)
-else()
-  set(GNUTLS_FOUND FALSE)
 endif()
 if(ENABLE_MBEDTLS)
   find_package(MbedTLS 1.0)
-else()
-  set(MBEDTLS_LIBRARIES FALSE)
 endif()
 if(ENABLE_OPENSSL)
   find_package(OpenSSL)
-else()
-  set(OPENSSL_FOUND FALSE)
 endif()
 if(WIN32)
   if(ENABLE_WINDOWS_CRYPTO)
     set(WINDOWS_CRYPTO_FOUND TRUE)
   endif()
-else()
-  set(WINDOWS_CRYPTO_FOUND FALSE)
 endif()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
@@ -100,9 +92,9 @@ check_function_exists(_dup HAVE__DUP)
 check_function_exists(_fdopen HAVE__FDOPEN)
 check_function_exists(_fileno HAVE__FILENO)
 check_function_exists(_setmode HAVE__SETMODE)
-check_function_exists(_snprintf HAVE__SNPRINTF)
+check_symbol_exists(_snprintf stdio.h HAVE__SNPRINTF)
 check_function_exists(_strdup HAVE__STRDUP)
-check_function_exists(_stricmp HAVE__STRICMP)
+check_symbol_exists(_stricmp string.h HAVE__STRICMP)
 check_function_exists(_strtoi64 HAVE__STRTOI64)
 check_function_exists(_strtoui64 HAVE__STRTOUI64)
 check_function_exists(_unlink HAVE__UNLINK)
@@ -110,14 +102,15 @@ check_function_exists(arc4random HAVE_ARC4RANDOM)
 check_function_exists(clonefile HAVE_CLONEFILE)
 check_function_exists(explicit_bzero HAVE_EXPLICIT_BZERO)
 check_function_exists(explicit_memset HAVE_EXPLICIT_MEMSET)
+check_function_exists(fchmod HAVE_FCHMOD)
 check_function_exists(fileno HAVE_FILENO)
 check_function_exists(fseeko HAVE_FSEEKO)
 check_function_exists(ftello HAVE_FTELLO)
 check_function_exists(getprogname HAVE_GETPROGNAME)
 check_function_exists(localtime_r HAVE_LOCALTIME_R)
 check_function_exists(setmode HAVE_SETMODE)
-check_function_exists(snprintf HAVE_SNPRINTF)
-check_function_exists(strcasecmp HAVE_STRCASECMP)
+check_symbol_exists(snprintf stdio.h HAVE_SNPRINTF)
+check_symbol_exists(strcasecmp strings.h HAVE_STRCASECMP)
 check_function_exists(strdup HAVE_STRDUP)
 check_function_exists(stricmp HAVE_STRICMP)
 check_function_exists(strtoll HAVE_STRTOLL)
@@ -199,10 +192,18 @@ if(ENABLE_LZMA)
   if(LIBLZMA_FOUND)
     set(HAVE_LIBLZMA 1)
   else()
-    message(WARNING "-- lzma library not found; lzma support disabled")
+    message(WARNING "-- lzma library not found; lzma/xz support disabled")
   endif(LIBLZMA_FOUND)
 endif(ENABLE_LZMA)
 
+if(ENABLE_ZSTD)
+  find_package(Zstd 1.3.6)
+  if(Zstd_FOUND)
+    set(HAVE_LIBZSTD 1)
+  else()
+    message(WARNING "-- zstd library not found; zstandard support disabled")
+  endif(Zstd_FOUND)
+endif(ENABLE_ZSTD)
 
 if (COMMONCRYPTO_FOUND)
   set(HAVE_CRYPTO 1)
@@ -221,7 +222,7 @@ elseif (MBEDTLS_FOUND)
   set(HAVE_MBEDTLS 1)
 endif()
 
-if (NOT HAVE_CRYPTO)
+if ((ENABLE_COMMONCRYPTO OR ENABLE_GNUTLS OR ENABLE_MBEDTLS OR ENABLE_OPENSSL OR ENABLE_WINDOWS_CRYPTO) AND NOT HAVE_CRYPTO)
   message(WARNING "-- neither Common Crypto, GnuTLS, mbed TLS, OpenSSL, nor Windows Cryptography found; AES support disabled")
 endif()
 
@@ -266,7 +267,7 @@ endif()
 
 include(FindPerl)
 
-if(NOT PERL_FOUND)
+if(BUILD_REGRESS AND NOT PERL_FOUND)
   message(WARNING "-- perl not found, regression testing disabled")
   set(BUILD_REGRESS OFF)
 endif()
@@ -281,11 +282,12 @@ endif()
 
 
 # pkgconfig file
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix \${prefix})
-SET(bindir \${exec_prefix}/${CMAKE_INSTALL_BINDIR})
-SET(libdir \${exec_prefix}/${CMAKE_INSTALL_LIBDIR})
-SET(includedir \${prefix}/${CMAKE_INSTALL_INCLUDEDIR})
+file(RELATIVE_PATH pc_relative_bindir ${CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_FULL_BINDIR})
+set(bindir "\${prefix}/${pc_relative_bindir}")
+file(RELATIVE_PATH pc_relative_libdir ${CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_FULL_LIBDIR})
+set(libdir "\${prefix}/${pc_relative_libdir}")
+file(RELATIVE_PATH pc_relative_includedir ${CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+set(includedir "\${prefix}/${pc_relative_includedir}")
 if(CMAKE_SYSTEM_NAME MATCHES BSD)
   set(PKG_CONFIG_RPATH "-Wl,-R\${libdir}")
 endif(CMAKE_SYSTEM_NAME MATCHES BSD)
@@ -299,6 +301,7 @@ foreach(LIB ${LIBS_PRIVATE})
 endforeach()
 string(REGEX REPLACE "-lBZip2::BZip2" "-lbz2" LIBS ${LIBS})
 string(REGEX REPLACE "-lLibLZMA::LibLZMA" "-llzma" LIBS ${LIBS})
+string(REGEX REPLACE "-lZstd::Zstd" "-lzstd" LIBS ${LIBS})
 string(REGEX REPLACE "-lOpenSSL::Crypto" "-lssl -lcrypto" LIBS ${LIBS})
 string(REGEX REPLACE "-lZLIB::ZLIB" "-lz" LIBS ${LIBS})
 string(REGEX REPLACE "-lGnuTLS::GnuTLS" "-lgnutls" LIBS ${LIBS})
@@ -429,12 +432,12 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-v
 configure_package_config_file("${PROJECT_NAME}-config.cmake.in" "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libzip)
 
-# Add targets to the build-tree export set
-export(TARGETS zip
-  FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake")
-
-# installation
 if(LIBZIP_DO_INSTALL)
+  # Add targets to the build-tree export set
+  export(TARGETS zip
+    FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake")
+
+  # installation
   install(FILES ${PROJECT_BINARY_DIR}/zipconf.h DESTINATION include)
   install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
@@ -443,4 +446,3 @@ if(LIBZIP_DO_INSTALL)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
 endif()
-

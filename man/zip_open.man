@@ -1,6 +1,6 @@
 .\" Automatically generated from an mdoc input file.  Do not edit.
 .\" zip_open.mdoc -- open zip archive
-.\" Copyright (C) 2003-2019 Dieter Baron and Thomas Klausner
+.\" Copyright (C) 2003-2022 Dieter Baron and Thomas Klausner
 .\"
 .\" This file is part of libzip, a library to manipulate ZIP archives.
 .\" The authors can be contacted at <libzip@nih.at>
@@ -30,7 +30,7 @@
 .\" OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 .\" IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.TH "ZIP_OPEN" "3" "December 18, 2017" "NiH" "Library Functions Manual"
+.TH "ZIP_OPEN" "3" "June 18, 2022" "NiH" "Library Functions Manual"
 .nh
 .if n .ad l
 .SH "NAME"
@@ -176,6 +176,15 @@ for details.
 The file specified by
 \fIpath\fR
 does not allow seeks.
+.PD 0
+.PP
+For newly created archives,
+\fBzip_open\fR()
+does not try to create the file; this is done when calling
+zip_close(3)
+and any errors, like missing write permissions, will
+be reported then.
+.PD
 .SH "SEE ALSO"
 libzip(3),
 zip_close(3),

@@ -12,9 +12,11 @@ source_type_t source_type = SOURCE_TYPE_NONE;
 zip_uint64_t fragment_size = 0;
 zip_file_t *z_files[16];
 unsigned int z_files_count;
+int commands_from_stdin = 0;
 
 static int add_nul(char *argv[]);
 static int cancel(char *argv[]);
+static int extract_as(char *argv[]);
 static int regress_fopen(char *argv[]);
 static int regress_fread(char *argv[]);
 static int regress_fseek(char *argv[]);
@@ -23,13 +25,16 @@ static int unchange_one(char *argv[]);
 static int unchange_all(char *argv[]);
 static int zin_close(char *argv[]);
 
-#define OPTIONS_REGRESS "F:Hmx"
+#define OPTIONS_REGRESS "F:Himx"
 
-#define USAGE_REGRESS " [-Hmx] [-F fragment-size]"
+#define USAGE_REGRESS " [-Himx] [-F fragment-size]"
 
 #define GETOPT_REGRESS                              \
     case 'H':                                       \
         source_type = SOURCE_TYPE_HOLE;             \
+        break;                                      \
+    case 'i':                                       \
+        commands_from_stdin = 1;                    \
         break;                                      \
     case 'm':                                       \
         source_type = SOURCE_TYPE_IN_MEMORY;        \
@@ -46,6 +51,7 @@ static int zin_close(char *argv[]);
 #define DISPATCH_REGRESS \
     {"add_nul", 2, "name length", "add NUL bytes", add_nul}, \
     {"cancel", 1, "limit", "cancel writing archive when limit% have been written (calls print_progress)", cancel}, \
+    {"extract_as", 2, "index name", "extract file data to given file name", extract_as}, \
     {"fopen", 1, "name", "open archive entry", regress_fopen}, \
     {"fread", 2, "file_index length", "read from fopened file and print", regress_fread}, \
     {"fseek", 3, "file_index offset whence", "seek in fopened file", regress_fseek}, \
@@ -67,12 +73,54 @@ static int zin_close(char *argv[]);
 
 /* clang-format on */
 
+#define MAX_STDIN_ARGC  128
+#define MAX_STDIN_LENGTH    8192
+
+char* stdin_argv[MAX_STDIN_ARGC];
+static char stdin_line[MAX_STDIN_LENGTH];
+
+int get_stdin_commands(void);
+
+#define REGRESS_PREPARE_ARGS                \
+    if (commands_from_stdin) {              \
+        argc = get_stdin_commands();        \
+        arg = 0;                            \
+        argv = stdin_argv;                  \
+    }
 
 zip_t *ziptool_open(const char *archive, int flags, zip_error_t *error, zip_uint64_t offset, zip_uint64_t len);
 
 
 #include "ziptool.c"
 
+int get_stdin_commands(void) {
+    int argc = 0;
+    char *p, *word;
+    fgets(stdin_line, sizeof(stdin_line), stdin);
+    word = p = stdin_line;
+    while (1) {
+        if (*p == ' ' || *p == '\n') {
+            *p = '\0';
+            if (word[0] != '\0') {
+                stdin_argv[argc] = word;
+                argc += 1;
+                if (argc >= MAX_STDIN_ARGC) {
+                    break;
+                }
+            }
+            word = p + 1;
+        }
+        else if (*p == '\0') {
+            if (word[0] != '\0') {
+                stdin_argv[argc] = word;
+                argc += 1;
+            }
+            break;
+        }
+        p += 1;
+    }
+    return argc;
+}
 
 zip_source_t *memory_src = NULL;
 
@@ -124,6 +172,26 @@ cancel(char *argv[]) {
     print_progress(argv);
     return 0;
 }
+
+static int
+extract_as(char *argv[]) {
+    zip_uint64_t idx;
+    FILE *fp;
+    int ret;
+
+    idx = strtoull(argv[0], NULL, 10);
+    if ((fp=fopen(argv[1], "wb")) == NULL) {
+        fprintf(stderr, "can't open output file '%s': %s", argv[1], strerror(errno));
+        return -1;
+    }
+    ret = cat_impl_backend(idx, 0, -1, fp);
+    if (fclose(fp) != 0) {
+        fprintf(stderr, "can't close output file '%s': %s", argv[1], strerror(errno));
+        ret = -1;
+    }
+    return ret;
+}
+
 
 static int
 is_seekable(char *argv[]) {

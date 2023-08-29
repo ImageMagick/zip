@@ -45,7 +45,7 @@ extern "C" {
 #include <zipconf.h>
 
 #ifndef ZIP_EXTERN
-#ifndef _LIB
+#ifndef ZIP_STATIC
 #ifdef _WIN32
 #define ZIP_EXTERN __declspec(dllimport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
@@ -112,6 +112,10 @@ extern "C" {
 #define ZIP_EXTRA_FIELD_ALL ZIP_UINT16_MAX
 #define ZIP_EXTRA_FIELD_NEW ZIP_UINT16_MAX
 
+/* length parameter to various functions */
+
+#define ZIP_LENGTH_TO_END 0
+#define ZIP_LENGTH_UNCHECKED (-2) /* only supported by zip_source_file and its variants */
 
 /* libzip error codes */
 

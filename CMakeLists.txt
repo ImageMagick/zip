@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 if (${CMAKE_VERSION} VERSION_LESS "3.17.0")
@@ -6,7 +6,7 @@ if (${CMAKE_VERSION} VERSION_LESS "3.17.0")
 endif()
 
 project(libzip
-  VERSION 1.10.0
+  VERSION 1.10.1
   LANGUAGES C)
 
 option(ENABLE_COMMONCRYPTO "Enable use of CommonCrypto" ON)
@@ -117,6 +117,7 @@ check_function_exists(getprogname HAVE_GETPROGNAME)
 check_symbol_exists(localtime_r time.h HAVE_LOCALTIME_R)
 check_symbol_exists(localtime_s time.h HAVE_LOCALTIME_S)
 check_function_exists(memcpy_s HAVE_MEMCPY_S)
+check_function_exists(random HAVE_RANDOM)
 check_function_exists(setmode HAVE_SETMODE)
 check_symbol_exists(snprintf stdio.h HAVE_SNPRINTF)
 check_symbol_exists(snprintf_s stdio.h HAVE_SNPRINTF_S)
@@ -348,7 +349,9 @@ endforeach()
 STRING(CONCAT zlib_link_name "-l" ${ZLIB_LINK_LIBRARY_NAME})
 string(REGEX REPLACE "-lBZip2::BZip2" "-lbz2" LIBS ${LIBS})
 string(REGEX REPLACE "-lLibLZMA::LibLZMA" "-llzma" LIBS ${LIBS})
-string(REGEX REPLACE "-l${zstd_TARGET}" "-lzstd" LIBS ${LIBS})
+if(ENABLE_ZSTD)
+  string(REGEX REPLACE "-l${zstd_TARGET}" "-lzstd" LIBS ${LIBS})
+endif()
 string(REGEX REPLACE "-lOpenSSL::Crypto" "-lssl -lcrypto" LIBS ${LIBS})
 string(REGEX REPLACE "-lZLIB::ZLIB" ${zlib_link_name} LIBS ${LIBS})
 string(REGEX REPLACE "-lGnuTLS::GnuTLS" "-lgnutls" LIBS ${LIBS})

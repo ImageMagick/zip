@@ -10,6 +10,7 @@ ZIP_STATIC
 lib
 
 [INCLUDES]
+lib
 bzlib->.
 lzma->src\liblzma\api
 zlib->.

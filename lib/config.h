@@ -60,7 +60,11 @@
 /* #undef HAVE_UNISTD_H */
 #define HAVE_WINDOWS_CRYPTO
 #define SIZEOF_OFF_T 4
-#define SIZEOF_SIZE_T 8
+#if defined(_WIN64)
+#define SIZEOF_SIZE_T  8
+#else
+#define SIZEOF_SIZE_T  4
+#endif
 /* #undef HAVE_DIRENT_H */
 /* #undef HAVE_FTS_H */
 /* #undef HAVE_NDIR_H */

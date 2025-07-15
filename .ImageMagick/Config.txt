@@ -1,39 +1,40 @@
-[DLL]
+[DYNAMIC_LIBRARY]
 
 [LICENSE]
 LICENSE
 
-[DEFINES_LIB]
+[STATIC_DEFINES]
 ZIP_STATIC
-
-[DIRECTORIES]
-lib
 
 [INCLUDES]
 lib
-bzlib->.
-lzma->src\liblzma\api
-zlib->.
+
+[INCLUDE_ARTIFACTS]
+lib\zip.h -> .
+lib\zipconf.h -> .
 
 [EXCLUDES]
-zip_algorithm_zstd.c
-zip_crypto_commoncrypto.c
-zip_crypto_gnutls.c
-zip_crypto_mbedtls.c
-zip_crypto_openssl.c
-zip_fdopen.c
-zip_random_unix.c
-zip_random_uwp.c
-zip_source_file_stdio.c
-zip_source_file_stdio_named.c
-zip_mkstempm.c
+examples\
+lib\zip_algorithm_zstd.c
+lib\zip_crypto_commoncrypto.c
+lib\zip_crypto_gnutls.c
+lib\zip_crypto_mbedtls.c
+lib\zip_crypto_openssl.c
+lib\zip_fdopen.c
+lib\zip_random_unix.c
+lib\zip_random_uwp.c
+lib\zip_source_file_stdio.c
+lib\zip_source_file_stdio_named.c
+ossfuzz\
+regress\
+src\
 
-[DEPENDENCIES]
+[REFERENCES]
 bzlib
 lzma
 zlib
 
-[CONFIG_DEFINE]
+[MAGICK_BASECONFIG_DEFINE]
 /*
   Define if you have ZIP library
 */

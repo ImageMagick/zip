@@ -51,7 +51,7 @@ regress\
 src\
 
 [REFERENCES]
-bzlib
+bzip2
 lzma
 zlib
 

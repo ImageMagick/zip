@@ -1,2 +1,0 @@
-cmake -DZLIB_INCLUDE_DIR:PATH="%cd%/../../zlib" -DZLIB_LIBRARY:FILEPATH="%cd%/../../zlib/foo.lib" ..
-cmake -DPROJECT_SOURCE_DIR=%cd% -DCMAKE_CURRENT_BINARY_DIR=%cd%/lib -P %cd%/cmake/GenerateZipErrorStrings.cmake (root)

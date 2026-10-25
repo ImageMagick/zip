@@ -1,0 +1,43 @@
+diff --git a/lib/compat.h b/lib/compat.h
+index 49d3aa3..667adf5 100644
+--- a/lib/compat.h
++++ b/lib/compat.h
+@@ -46,7 +46,7 @@
+ 
+ #ifdef _WIN32
+ #ifndef ZIP_EXTERN
+-#ifndef ZIP_STATIC
++#ifndef _LIB
+ #define ZIP_EXTERN __declspec(dllexport)
+ #endif
+ #endif
+diff --git a/lib/config.h b/lib/config.h
+index 0bb0e7d..3c33566 100644
+--- a/lib/config.h
++++ b/lib/config.h
+@@ -60,7 +60,11 @@
+ /* #undef HAVE_UNISTD_H */
+ #define HAVE_WINDOWS_CRYPTO
+ #define SIZEOF_OFF_T 4
+-#define SIZEOF_SIZE_T 8
++#if defined(_WIN64)
++#define SIZEOF_SIZE_T  8
++#else
++#define SIZEOF_SIZE_T  4
++#endif
+ /* #undef HAVE_DIRENT_H */
+ /* #undef HAVE_FTS_H */
+ /* #undef HAVE_NDIR_H */
+diff --git a/lib/zip.h b/lib/zip.h
+index c2a8a8b..3c95a1b 100644
+--- a/lib/zip.h
++++ b/lib/zip.h
+@@ -54,7 +54,7 @@ extern "C" {
+ #include <zipconf.h>
+ 
+ #ifndef ZIP_EXTERN
+-#ifndef ZIP_STATIC
++#ifndef _LIB
+ #ifdef _WIN32
+ #define ZIP_EXTERN __declspec(dllimport)
+ #elif defined(__GNUC__) && __GNUC__ >= 4

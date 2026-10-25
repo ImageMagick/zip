@@ -39,7 +39,6 @@ examples\
 lib\zip_algorithm_zstd.c
 lib\zip_crypto_commoncrypto.c
 lib\zip_crypto_gnutls.c
-lib\zip_crypto_mbedtls.c
 lib\zip_crypto_openssl.c
 lib\zip_fdopen.c
 lib\zip_random_unix.c
